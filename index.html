@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sean Robux - Top Up Robux Roblox (Manual via WhatsApp)</title>
-    <meta name="description" content="Top up Robux Roblox manual via WhatsApp. Via Login dan Via Username. Tanpa password di website, cukup username Roblox.">
+    <meta name="description" content="Top up Robux Roblox manual via WhatsApp. Via Login dan Via Username.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -61,7 +61,7 @@
                         TOP UP ROBUX TANPA RIBET, CUKUP <span class="text-[#e8890c]">USERNAME</span>
                     </h1>
                     <p id="heroDesc" class="text-[#555555] text-sm md:text-base mt-2">
-                        Pilih Via Login atau Via Username. Isi username, bayar QRIS, lalu pesananmu otomatis terkirim ke WhatsApp Admin. Admin memproses pesanan secara manual.
+                        Pilih Via Login atau Via Username. Isi data pesanan, bayar QRIS, lalu pesananmu otomatis terkirim ke WhatsApp Admin. Admin memproses pesanan secara manual.
                     </p>
                 </div>
                 <i class="fa-solid fa-cube text-orange-200 text-9xl absolute -right-4 -bottom-4 transform -rotate-12"></i>
@@ -79,10 +79,14 @@
                 </button>
             </div>
 
-            <!-- PERINGATAN KEAMANAN -->
+            <!-- PERINGATAN KEAMANAN (DINAMIS SESUAI METODE) -->
             <div class="mt-6 bg-[#FFE4E4] border-2 border-black rounded-xl p-4 shadow-[4px_4px_0_#000]">
-                <p class="text-xs sm:text-sm font-bold text-black"><i class="fa-solid fa-shield-halved mr-1"></i> Kami TIDAK PERNAH meminta password, kode OTP, atau kode pemulihan Roblox.</p>
-                <p class="text-xs text-[#555555] mt-1">Cukup username saja. Jangan berikan password akunmu ke siapa pun, termasuk yang mengaku admin.</p>
+                <p id="securityTitle" class="text-xs sm:text-sm font-bold text-black">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> Tips Keamanan Via Login: Segera ganti password setelah proses selesai.
+                </p>
+                <p id="securityDesc" class="text-xs text-[#555555] mt-1">
+                    Pastikan Anda hanya mengirim data ke WhatsApp resmi Sean Robux, serta perbarui password dan reset kode backup setelah pesanan selesai.
+                </p>
             </div>
         </div>
     </div>
@@ -110,6 +114,63 @@
                     <p class="text-[11px] text-[#555555] mt-2">Username bisa dicek dari URL profilmu: roblox.com/users/<span class="font-bold text-black">User ID</span>/profile. Yang dimasukkan ke sini tetap username-nya.</p>
                 </div>
 
+                <!-- FORM EMAIL, PASSWORD & KODE BACKUP (KHUSUS TAB VIA LOGIN) -->
+                <div id="loginInfoBox" class="glass-card rounded-2xl p-5">
+                    <div class="flex items-center gap-3 mb-4 border-b-2 border-black pb-4">
+                        <span class="w-8 h-8 rounded-lg bg-[#ffa500] text-black font-bold flex items-center justify-center shrink-0"><i class="fa-solid fa-right-to-bracket text-sm"></i></span>
+                        <div class="min-w-0">
+                            <h2 class="text-lg font-bold text-black">Data Login Akun Roblox</h2>
+                            <p class="text-xs text-[#555555]">Isi Email, Password, dan Kode Backup (jika 2FA aktif).</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-black font-medium" for="loginEmail">Email Akun Roblox <span class="text-red-600">*</span></label>
+                            <div class="relative mt-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#555555]"><i class="fa-solid fa-envelope"></i></span>
+                                <input type="email" id="loginEmail" placeholder="Contoh: nama@email.com" autocomplete="email" oninput="updateSummary()" class="w-full bg-white border-2 border-black rounded-lg pl-10 pr-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-black font-medium" for="loginPassword">Password Akun Roblox <span class="text-red-600">*</span></label>
+                            <div class="relative mt-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-[#555555]"><i class="fa-solid fa-lock"></i></span>
+                                <input type="password" id="loginPassword" placeholder="Masukkan password akun" autocomplete="current-password" class="w-full bg-white border-2 border-black rounded-lg pl-10 pr-10 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                                <button type="button" onclick="toggleLoginPassword()" aria-label="Tampilkan atau sembunyikan password" class="absolute inset-y-0 right-0 flex items-center pr-3 text-[#555555] hover:text-black">
+                                    <i id="loginPasswordIcon" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 3 FORM KODE BACKUP -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs text-black font-medium" for="backupCode1">Kode Backup 1</label>
+                                <input type="text" id="backupCode1" placeholder="Opsional (2FA)" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                            </div>
+                            <div>
+                                <label class="text-xs text-black font-medium" for="backupCode2">Kode Backup 2</label>
+                                <input type="text" id="backupCode2" placeholder="Opsional (2FA)" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                            </div>
+                            <div>
+                                <label class="text-xs text-black font-medium" for="backupCode3">Kode Backup 3</label>
+                                <input type="text" id="backupCode3" placeholder="Opsional (2FA)" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 bg-[#FFF8E1] border-2 border-black rounded-xl p-3">
+                        <p class="text-xs font-bold text-black"><i class="fa-solid fa-circle-info mr-1 text-[#e8890c]"></i> Catatan Via Login:</p>
+                        <ol class="text-xs text-[#555555] mt-1.5 space-y-1 list-decimal list-inside">
+                            <li>Jika akun mengaktifkan 2-Step Verification (2FA), isi Kode Backup 1–3 agar admin dapat langsung memproses pesanan.</li>
+                            <li>Demi keamanan, password dan kode backup tidak disertakan di link URL WhatsApp—kirimkan langsung di chat bersama bukti transfer.</li>
+                            <li>Setelah pesanan selesai, segera ganti password Roblox-mu, buat ulang kode backup, dan keluar dari semua sesi.</li>
+                        </ol>
+                    </div>
+                </div>
+
                 <!-- LANGKAH 2: NOMINAL -->
                 <div class="glass-card rounded-2xl p-5">
                     <div class="flex items-center gap-3 mb-4 border-b-2 border-black pb-4">
@@ -121,26 +182,6 @@
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="productGrid"></div>
                     <p class="text-[11px] text-[#555555] mt-3">Harga di atas masih harga contoh. Harga final mengikuti konfirmasi admin di WhatsApp.</p>
-                </div>
-
-                <!-- INFO VIA LOGIN (HANYA TAB VIA LOGIN) -->
-                <div id="loginInfoBox" class="hidden glass-card rounded-2xl p-5">
-                    <div class="flex items-center gap-3 mb-4 border-b-2 border-black pb-4">
-                        <span class="w-8 h-8 rounded-lg bg-[#ffa500] text-black font-bold flex items-center justify-center shrink-0"><i class="fa-solid fa-right-to-bracket text-sm"></i></span>
-                        <div class="min-w-0">
-                            <h2 class="text-lg font-bold text-black">Via Login: Lewat Chat WhatsApp</h2>
-                            <p class="text-xs text-[#555555]">Pesanan Via Login ditangani langsung oleh admin di chat WhatsApp.</p>
-                        </div>
-                    </div>
-                    <ol class="text-xs sm:text-sm text-black space-y-2 list-decimal list-inside">
-                        <li><span class="font-semibold">Pilih nominal</span>, isi username dan nomor WhatsApp, lalu tekan Lihat Invoice &amp; Bayar.</li>
-                        <li><span class="font-semibold">Bayar via QRIS</span> sesuai total di invoice.</li>
-                        <li><span class="font-semibold">Kirim pesanan ke WhatsApp Admin</span> dari tombol di invoice, lalu lampirkan bukti transfer. Admin menjelaskan langkah selanjutnya di chat.</li>
-                    </ol>
-                    <div class="mt-4 bg-[#FFE4E4] border-2 border-black rounded-xl p-3">
-                        <p class="text-xs font-bold text-black">Website ini tidak meminta password.</p>
-                        <p class="text-xs text-[#555555] mt-1">Tidak ada kolom password, kode OTP, atau kode pemulihan di halaman ini, dan pesanan yang terkirim ke WhatsApp tidak berisi data login. Jangan menulis password atau kode pemulihan di website ini. Setelah proses apa pun yang melibatkan login selesai, segera ganti password Roblox-mu dan keluar dari semua sesi. Jangan berikan kode pemulihan / backup code ke siapa pun.</p>
-                    </div>
                 </div>
 
                 <!-- LANGKAH 3: PEMBAYARAN MANUAL -->
@@ -175,6 +216,7 @@
                         <div class="flex justify-between gap-3"><span class="text-[#555555]">Metode:</span><span id="summaryMethod" class="font-semibold text-black text-right">Via Login</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#555555]">Username:</span><span id="summaryUsername" class="font-semibold text-black text-right break-all">-</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#555555]">Akun:</span><span id="summaryAccount" class="font-semibold text-black text-right break-all">-</span></div>
+                        <div id="summaryLoginEmailRow" class="flex justify-between gap-3"><span class="text-[#555555]">Email Login:</span><span id="summaryLoginEmail" class="font-semibold text-black text-right break-all">-</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#555555]">Nominal:</span><span id="summaryNominal" class="font-semibold text-black text-right">-</span></div>
                         <div class="flex justify-between gap-3"><span class="text-[#555555]">Transfer Via:</span><span id="summaryPayment" class="font-semibold text-black text-right">-</span></div>
                         <div class="flex justify-between gap-3 border-t-2 border-black pt-2"><span class="font-bold text-black">Total Bayar:</span><span id="summaryTotal" class="font-extrabold text-[#e8890c] text-right">-</span></div>
@@ -189,12 +231,12 @@
                 <div class="glass-card rounded-2xl p-5">
                     <h2 class="text-lg font-bold text-black mb-3">Cara Order</h2>
                     <ol class="text-xs sm:text-sm text-[#555555] space-y-2 list-decimal list-inside">
-                        <li><span class="text-black font-semibold">Isi username Roblox</span> dan tekan Cek Username untuk memastikan akunnya benar.</li>
+                        <li><span class="text-black font-semibold">Isi username Roblox</span> dan tekan Cek Username untuk memastikan akunnya benar. (Jika memilih Via Login, lengkapi juga Email, Password, dan Kode Backup jika 2FA aktif).</li>
                         <li><span class="text-black font-semibold">Pilih nominal Robux.</span></li>
                         <li><span class="text-black font-semibold">Bayar via QRIS</span> sesuai total di invoice.</li>
                         <li><span class="text-black font-semibold">Kirim pesanan ke WhatsApp Admin</span> dari tombol di invoice, lalu lampirkan bukti transfer. Admin memproses secara manual dan menghubungimu lewat nomor WhatsApp yang kamu isi.</li>
                     </ol>
-                    <p class="text-xs text-[#555555] mt-3">Estimasi: Via Login: admin menjelaskan langkah selanjutnya di chat WhatsApp setelah pembayaran terkonfirmasi. Via Username diproses manual setelah pembayaran terkonfirmasi.</p>
+                    <p class="text-xs text-[#555555] mt-3">Estimasi: Via Login: admin memproses login &amp; pengisian setelah pembayaran terkonfirmasi. Via Username diproses manual setelah pembayaran terkonfirmasi.</p>
                 </div>
 
             </div>
@@ -204,7 +246,7 @@
     <footer class="max-w-xl w-full mx-auto px-4 pb-10">
         <div class="text-center text-xs text-[#555555]">
             <p class="font-bold text-black">Sean Robux — Top Up Robux Roblox</p>
-            <p class="mt-1">Proses manual via WhatsApp. Kami tidak pernah meminta password Roblox.</p>
+            <p class="mt-1">Proses manual via WhatsApp. Selalu jaga keamanan akun Roblox Anda.</p>
         </div>
     </footer>
 
@@ -227,6 +269,7 @@
                 <div class="flex justify-between gap-3"><span class="text-[#555555]">Metode:</span><span id="modalMethod" class="font-semibold text-black text-right">-</span></div>
                 <div class="flex justify-between gap-3"><span class="text-[#555555]">Username:</span><span id="modalUsername" class="font-semibold text-black text-right break-all">-</span></div>
                 <div class="flex justify-between gap-3"><span class="text-[#555555]">Akun:</span><span id="modalAccount" class="font-semibold text-black text-right break-all">-</span></div>
+                <div id="modalLoginEmailRow" class="flex justify-between gap-3"><span class="text-[#555555]">Email Login:</span><span id="modalLoginEmail" class="font-semibold text-black text-right break-all">-</span></div>
                 <div class="flex justify-between gap-3"><span class="text-[#555555]">Nominal:</span><span id="modalNominal" class="font-semibold text-black text-right">-</span></div>
                 <div class="flex justify-between gap-3"><span class="text-[#555555]">WA Pembeli:</span><span id="modalBuyerWa" class="font-semibold text-black text-right">-</span></div>
                 <div class="flex justify-between gap-3 border-t-2 border-black pt-2"><span class="font-bold text-black">Total Bayar:</span><span id="modalTotal" class="font-extrabold text-[#e8890c] text-right">-</span></div>
@@ -252,13 +295,8 @@
         // ============================================================
         // KONFIGURASI — UBAH DI SINI SAJA
         // ============================================================
-        // Nomor WhatsApp Admin yang menerima pesanan (format 62xxx).
-        // v1 memakai nomor CS Top Up. Kalau WA Admin Robux berbeda,
-        // ganti angka di bawah ini saja (mis. nomor admin SeanJoki).
         const ADMIN_WA = "6281268428112";
 
-        // HARGA CONTOH — WAJIB DIGANTI dengan harga jualmu sebelum dipakai.
-        // Harga di bawah ini hanya supaya tampilannya bisa dicoba.
         const PRODUCTS_USERNAME = [
             { robux: 80, price: 14000 },
             { robux: 100, price: 17000 },
@@ -269,8 +307,7 @@
             { robux: 2750, price: 429000 },
             { robux: 5500, price: 849000 }
         ];
-        // Via Login memakai daftar harga sendiri supaya bisa dibedakan.
-        // HARGA CONTOH juga — ganti dengan harga jualmu sebelum dipakai.
+
         const PRODUCTS_LOGIN = [
             { robux: 80, price: 14000 },
             { robux: 100, price: 17000 },
@@ -282,8 +319,6 @@
             { robux: 5500, price: 849000 }
         ];
 
-        // Pembayaran manual, disalin dari SeanJoki v6 (satu QRIS).
-        // Kalau QRIS untuk Robux berbeda, ganti di sini saja.
         const MANUAL_PAYMENTS = [
             {
                 id: 'qris',
@@ -328,6 +363,22 @@
             return /^[A-Za-z0-9_]{3,20}$/.test(name);
         }
 
+        function validEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function toggleLoginPassword() {
+            const input = document.getElementById('loginPassword');
+            const icon = document.getElementById('loginPasswordIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
         function showToast(message) {
             const toast = document.getElementById('copyToast');
             document.getElementById('copyToastText').innerText = message;
@@ -348,6 +399,25 @@
             return PRODUCTS_USERNAME;
         }
 
+        function updateMethodUI() {
+            const isLogin = activeMethod === 'login';
+            document.getElementById('nominalSubtitle').innerText = isLogin
+                ? 'Via Login: ditangani admin lewat chat WhatsApp.'
+                : 'Via Username: proses manual oleh admin.';
+            document.getElementById('loginInfoBox').classList.toggle('hidden', !isLogin);
+            document.getElementById('summaryLoginEmailRow').classList.toggle('hidden', !isLogin);
+
+            const secTitle = document.getElementById('securityTitle');
+            const secDesc = document.getElementById('securityDesc');
+            if (isLogin) {
+                secTitle.innerHTML = '<i class="fa-solid fa-shield-halved mr-1"></i> Tips Keamanan Via Login: Segera ganti password setelah proses selesai.';
+                secDesc.innerText = 'Pastikan Anda hanya mengirim data ke WhatsApp resmi Sean Robux, serta perbarui password dan reset kode backup setelah pesanan selesai.';
+            } else {
+                secTitle.innerHTML = '<i class="fa-solid fa-shield-halved mr-1"></i> Untuk Via Username, kami TIDAK PERNAH meminta password atau kode OTP.';
+                secDesc.innerText = 'Cukup username saja. Jangan berikan password akunmu jika memilih metode Via Username.';
+            }
+        }
+
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             const list = currentProducts();
@@ -358,10 +428,7 @@
                     + '<span class="block text-xs text-[#e8890c] font-bold whitespace-nowrap">' + formatRupiah(p.price) + '</span>'
                     + '</button>';
             }).join('');
-            document.getElementById('nominalSubtitle').innerText = activeMethod === 'login'
-                ? 'Via Login: ditangani admin lewat chat WhatsApp.'
-                : 'Via Username: proses manual oleh admin.';
-            document.getElementById('loginInfoBox').classList.toggle('hidden', activeMethod !== 'login');
+            updateMethodUI();
         }
 
         function selectProduct(idx) {
@@ -394,7 +461,6 @@
         }
 
         function applyCheckResult(found, account) {
-            const username = document.getElementById('robloxUsername').value.trim();
             if (found && account) {
                 checkedAccount = account;
                 checkState = 'found';
@@ -426,7 +492,6 @@
             checkState = 'checking';
             setUsernameResult('checking', '<p class="text-[#555555]">Mengecek username ke Roblox...</p>');
             try {
-                // 1) Lewat API server (saat sudah deploy di Vercel).
                 try {
                     const res = await fetch('/api/check-username', {
                         method: 'POST',
@@ -442,7 +507,7 @@
                         }
                     }
                 } catch (e) { /* lanjut ke cara langsung */ }
-                // 2) Langsung ke API publik Roblox (untuk preview / tanpa server).
+
                 const res2 = await fetch('https://users.roblox.com/v1/usernames/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -508,9 +573,11 @@
 
         function updateSummary() {
             const username = (document.getElementById('robloxUsername').value || '').trim();
+            const loginEmail = (document.getElementById('loginEmail').value || '').trim();
             document.getElementById('summaryMethod').innerText = METHOD_LABELS[activeMethod];
             document.getElementById('summaryUsername').innerText = username || '-';
             document.getElementById('summaryAccount').innerText = username ? accountSummaryText() : '-';
+            document.getElementById('summaryLoginEmail').innerText = loginEmail || '-';
             document.getElementById('summaryNominal').innerText = selectedProduct ? selectedProduct.robux.toLocaleString('id-ID') + ' Robux' : '-';
             document.getElementById('summaryPayment').innerText = selectedPaymentObj ? selectedPaymentObj.name : '-';
             document.getElementById('summaryTotal').innerText = selectedProduct ? formatRupiah(selectedProduct.price) : '-';
@@ -525,7 +592,10 @@
 
         function openInvoice() {
             const username = document.getElementById('robloxUsername').value.trim();
+            const loginEmail = document.getElementById('loginEmail').value.trim();
+            const loginPassword = document.getElementById('loginPassword').value;
             const buyerWaRaw = document.getElementById('buyerWa').value.trim();
+
             if (!validRobloxUsername(username)) {
                 alert('Isi dulu Username Roblox yang benar (3-20 karakter, huruf/angka/_).');
                 document.getElementById('robloxUsername').focus();
@@ -534,6 +604,18 @@
             if (checkState === 'notfound') {
                 alert('Username tidak ditemukan di Roblox. Periksa ejaannya dulu, lalu tekan Cek Username lagi.');
                 return;
+            }
+            if (activeMethod === 'login') {
+                if (!validEmail(loginEmail)) {
+                    alert('Isi Email Akun Roblox yang valid.');
+                    document.getElementById('loginEmail').focus();
+                    return;
+                }
+                if (!loginPassword || loginPassword.length < 4) {
+                    alert('Isi Password Akun Roblox terlebih dahulu.');
+                    document.getElementById('loginPassword').focus();
+                    return;
+                }
             }
             if (!selectedProduct) {
                 alert('Pilih dulu nominal Robux yang mau dibeli.');
@@ -548,15 +630,21 @@
                 const ok = confirm('Username "' + username + '" belum terverifikasi otomatis. Lanjutkan dengan username ini? Pastikan ejaannya benar.');
                 if (!ok) return;
             }
+
             currentInvoice = generateInvoice();
-            const buyerWa = normalizeWaNumber(buyerWaRaw);
             document.getElementById('modalInvoiceNo').innerText = '#' + currentInvoice;
             document.getElementById('modalMethod').innerText = METHOD_LABELS[activeMethod];
             document.getElementById('modalUsername').innerText = username;
             document.getElementById('modalAccount').innerText = accountSummaryText();
+
+            const modalLoginRow = document.getElementById('modalLoginEmailRow');
+            modalLoginRow.classList.toggle('hidden', activeMethod !== 'login');
+            document.getElementById('modalLoginEmail').innerText = loginEmail || '-';
+
             document.getElementById('modalNominal').innerText = selectedProduct.robux.toLocaleString('id-ID') + ' Robux';
             document.getElementById('modalBuyerWa').innerText = buyerWaRaw;
             document.getElementById('modalTotal').innerText = formatRupiah(selectedProduct.price);
+
             const paymentBox = document.getElementById('modalPaymentBox');
             if (selectedPaymentObj.type === 'qris') {
                 paymentBox.innerHTML = '<span class="text-xs text-[#555555] block mb-2">Scan QRIS di bawah ini:</span>'
@@ -585,6 +673,13 @@
             lines.push('• Metode : ' + order.methodLabel);
             lines.push('• Username Roblox : ' + order.username);
             lines.push('• Akun : ' + order.accountText);
+            if (order.method === 'login') {
+                lines.push('• Email Login : ' + order.loginEmail);
+                lines.push('• Password : (akan dikirim langsung di chat)');
+                if (order.hasBackupCodes) {
+                    lines.push('• Kode Backup : (sudah disiapkan, dikirim langsung di chat)');
+                }
+            }
             lines.push('• Nominal : ' + order.robux.toLocaleString('id-ID') + ' Robux');
             lines.push('• Estimasi : ' + order.estimate);
             lines.push('----------------------------------------');
@@ -594,7 +689,7 @@
             lines.push('• WA Pembeli : ' + order.buyerWa);
             lines.push('');
             if (order.method === 'login') {
-                lines.push('_Halo Admin Sean Robux, saya mau order Via Login di atas. Mohon dijelaskan langkah selanjutnya, dan berikut saya lampirkan bukti transfernya:_');
+                lines.push('_Halo Admin Sean Robux, saya mau order Via Login di atas. Berikut saya lampirkan bukti transfer, password akun' + (order.hasBackupCodes ? ', dan kode backup' : '') + ':_');
             } else {
                 lines.push('_Halo Admin Sean Robux, saya sudah melakukan pembayaran untuk pesanan Robux di atas. Berikut saya lampirkan bukti transfernya:_');
             }
@@ -603,6 +698,11 @@
 
         function sendToWhatsApp() {
             const username = document.getElementById('robloxUsername').value.trim();
+            const loginEmail = document.getElementById('loginEmail').value.trim();
+            const b1 = document.getElementById('backupCode1').value.trim();
+            const b2 = document.getElementById('backupCode2').value.trim();
+            const b3 = document.getElementById('backupCode3').value.trim();
+            const hasBackupCodes = Boolean(b1 || b2 || b3);
             const buyerWaRaw = document.getElementById('buyerWa').value.trim();
             const message = buildWaMessage({
                 invoice: currentInvoice,
@@ -610,6 +710,8 @@
                 methodLabel: METHOD_LABELS[activeMethod],
                 username: username,
                 accountText: accountSummaryText(),
+                loginEmail: loginEmail,
+                hasBackupCodes: hasBackupCodes,
                 robux: selectedProduct.robux,
                 estimate: METHOD_ESTIMATES[activeMethod],
                 paymentName: selectedPaymentObj.name,
