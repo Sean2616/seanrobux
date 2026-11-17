@@ -27,6 +27,12 @@ const CONFIG_DB_PATH = 'seanrobux_config';
 const SESSION_COOKIE = 'sr_admin';
 const SESSION_MAX_AGE = 12 * 60 * 60; // 12 jam, dalam detik
 const NOMINALS = [80, 100, 200, 400, 800, 1700, 2750, 5500];
+// Batas daftar harga dinamis (sejak Admin v2, admin bisa membuat list
+// item sendiri): tiap metode 1-20 item, nominal 1-1.000.000 Robux,
+// harga 1-100.000.000 rupiah. NOMINALS di atas hanya daftar awal.
+const MAX_PRICE_ITEMS = 20;
+const MAX_NOMINAL = 1000000;
+const MAX_PRICE = 100000000;
 
 // ---------- Rahasia & perbandingan aman ----------
 
@@ -223,18 +229,31 @@ async function readJsonBody(req) {
 
 // ---------- Validasi daftar harga & nomor WA ----------
 // Harga tersimpan per metode sebagai map nominal -> harga rupiah:
-// { "80": 14000, "100": 17000, ... } untuk kedelapan nominal di NOMINALS.
+// { "80": 14000, "500": 75000, ... }. Sejak Admin v2, nominalnya bebas
+// (tidak harus kedelapan NOMINALS): tiap metode 1-20 item, nominal
+// bilangan bulat 1-1.000.000, harga bilangan bulat 1-100.000.000.
+// Data lama berisi 8 nominal tetap tetap lolos validasi ini.
 
 function validPriceMap(m) {
-  return m && typeof m === 'object' && NOMINALS.every((n) => Number.isInteger(m[String(n)]) && m[String(n)] > 0);
+  if (!m || typeof m !== 'object' || Array.isArray(m)) return false;
+  const keys = Object.keys(m);
+  if (keys.length < 1 || keys.length > MAX_PRICE_ITEMS) return false;
+  for (const k of keys) {
+    if (!/^[1-9][0-9]*$/.test(k)) return false;
+    if (parseInt(k, 10) > MAX_NOMINAL) return false;
+    const p = m[k];
+    if (!Number.isInteger(p) || p < 1 || p > MAX_PRICE) return false;
+  }
+  return true;
 }
 
-// Mengambil hanya kedelapan nominal yang dikenal (kunci lain dibuang).
-// Mengembalikan null kalau ada nominal yang hilang / bukan angka > 0.
+// Mengambil map yang sudah divalidasi, dengan kunci diurutkan dari
+// nominal terkecil. Mengembalikan null kalau tidak valid.
 function pickPrices(m) {
   if (!validPriceMap(m)) return null;
   const out = {};
-  for (const n of NOMINALS) out[String(n)] = m[String(n)];
+  const keys = Object.keys(m).map((k) => parseInt(k, 10)).sort((a, b) => a - b);
+  for (const n of keys) out[String(n)] = m[String(n)];
   return out;
 }
 
@@ -297,6 +316,9 @@ module.exports = {
   SESSION_COOKIE,
   SESSION_MAX_AGE,
   NOMINALS,
+  MAX_PRICE_ITEMS,
+  MAX_NOMINAL,
+  MAX_PRICE,
   getSessionSecret,
   safeEqual,
   hashPassword,

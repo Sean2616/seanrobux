@@ -1,7 +1,8 @@
 'use strict';
 // /api/admin-prices — baca/tulis daftar harga Robux lewat SERVER (butuh sesi admin).
 // GET  -> { success, stored: { login, username } | null }
-// PUT  -> body { login, username } (masing-masing map 8 nominal -> harga rupiah > 0)
+// PUT  -> body { login, username } (masing-masing map nominal -> harga rupiah;
+//         tiap metode 1-20 item, nominal 1-1.000.000, harga 1-100.000.000)
 // Browser tidak lagi membaca/menulis Firebase langsung untuk admin;
 // halaman utama situs tetap memuat harga publik langsung dari Firebase.
 
@@ -32,7 +33,7 @@ module.exports = async (req, res) => {
     const login = body ? auth.pickPrices(body.login) : null;
     const username = body ? auth.pickPrices(body.username) : null;
     if (!login || !username) {
-      return auth.sendJson(res, 400, { success: false, message: 'Semua harga harus diisi angka lebih dari 0.' });
+      return auth.sendJson(res, 400, { success: false, message: 'Daftar harga tidak valid: tiap metode 1-20 item, nominal 1-1.000.000 Robux, harga angka lebih dari 0.' });
     }
     try {
       await auth.fbPut(auth.PRICES_DB_PATH, {
