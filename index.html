@@ -841,6 +841,47 @@
             return list;
         }
 
+        // Daftar Roblox Plus: disimpan sebagai array objek
+        // [{ months, price }, ...], karena Firebase mengubah map
+        // berkunci angka kecil ("1", ...) menjadi array saat dibaca.
+        // Dua bentuk lama tetap diterima supaya data yang sudah
+        // tersimpan tidak hilang: map { "1": 25000 } dan array angka
+        // [null, 25000] (indeks = jumlah Bulan, null dilewati).
+        // Hasilnya list [{ robux: <Bulan>, price }] urut menaik,
+        // atau null kalau tidak valid (daftar bawaan yang dipakai).
+        function cloudPlusList(v) {
+            if (Array.isArray(v)) {
+                const list = [];
+                for (let i = 0; i < v.length; i++) {
+                    const e = v[i];
+                    if (e === null || e === undefined) continue;
+                    if (typeof e === 'object') {
+                        const m = e.months;
+                        const p = e.price;
+                        if (!Number.isInteger(m) || m < 1 || m > MAX_CLOUD_NOMINAL) return null;
+                        if (!Number.isInteger(p) || p < 1 || p > MAX_CLOUD_PRICE) return null;
+                        list.push({ robux: m, price: p });
+                    } else if (Number.isInteger(e)) {
+                        if (i < 1) return null;
+                        if (e < 1 || e > MAX_CLOUD_PRICE) return null;
+                        list.push({ robux: i, price: e });
+                    } else {
+                        return null;
+                    }
+                    if (list.length > MAX_CLOUD_ITEMS) return null;
+                }
+                if (list.length < 1) return null;
+                const seen = {};
+                for (const item of list) {
+                    if (seen[item.robux]) return null;
+                    seen[item.robux] = true;
+                }
+                list.sort((a, b) => a.robux - b.robux);
+                return list;
+            }
+            return cloudPriceList(v);
+        }
+
         function updateFloaterLink() {
             const floater = document.getElementById('csFloater');
             if (floater) floater.href = 'https://wa.me/' + ADMIN_WA + '?text=' + encodeURIComponent('Halo Admin Sean Robux, saya mau tanya soal top up Robux.');
@@ -852,7 +893,7 @@
             let changed = false;
             const login = pricesData ? cloudPriceList(pricesData.login) : null;
             const username = pricesData ? cloudPriceList(pricesData.username) : null;
-            const plus = pricesData ? cloudPriceList(pricesData.plus) : null;
+            const plus = pricesData ? cloudPlusList(pricesData.plus) : null;
             if (login && username) {
                 PRODUCTS_LOGIN = login;
                 PRODUCTS_USERNAME = username;

@@ -257,6 +257,65 @@ function pickPrices(m) {
   return out;
 }
 
+// ---------- Daftar Roblox Plus (durasi dalam Bulan) ----------
+// Daftar Plus disimpan sebagai ARRAY objek { months, price }, BUKAN map
+// nominal -> harga seperti daftar Robux. Alasannya: Firebase Realtime
+// Database mengubah objek berkunci angka kecil ("1", "2", ...) menjadi
+// array saat dibaca — map { "1": 25000 } kembali sebagai
+// [null, 25000] — sehingga daftar durasi dalam bentuk map tidak bisa
+// diandalkan (terbukti 2026-11-17: harga Plus yang disimpan Fuda
+// "hilang" karena pembaca menolak bentuk array itu). Array berisi
+// objek tidak kena konversi tersebut.
+// Pembaca juga menerima dua bentuk lama, supaya data yang sudah
+// tersimpan tetap terbaca dan tidak hilang:
+//  (a) map { "1": 25000, ... } (bentuk tulis Admin v3/v4), dan
+//  (b) array angka [null, 25000, ...] hasil konversi Firebase, di
+//      mana indeks dipakai sebagai jumlah Bulan dan entri null dilewati.
+// Aturannya sama dengan daftar lain: 1-20 item, durasi 1-1.000.000
+// Bulan tanpa duplikat, harga 1-100.000.000 rupiah.
+function pickPlusList(v) {
+  let items = null;
+  if (Array.isArray(v)) {
+    items = [];
+    for (let i = 0; i < v.length; i++) {
+      const e = v[i];
+      if (e === null || e === undefined) continue;
+      if (typeof e === 'object') {
+        const m = e.months;
+        const p = e.price;
+        if (!Number.isInteger(m) || m < 1 || m > MAX_NOMINAL) return null;
+        if (!Number.isInteger(p) || p < 1 || p > MAX_PRICE) return null;
+        items.push({ months: m, price: p });
+      } else if (Number.isInteger(e)) {
+        if (i < 1) return null; // indeks 0 berisi angka = 0 Bulan, tidak valid
+        if (e < 1 || e > MAX_PRICE) return null;
+        items.push({ months: i, price: e });
+      } else {
+        return null;
+      }
+      if (items.length > MAX_PRICE_ITEMS) return null;
+    }
+  } else if (v && typeof v === 'object') {
+    const m = pickPrices(v);
+    if (!m) return null;
+    items = Object.keys(m).map((k) => ({ months: parseInt(k, 10), price: m[k] }));
+  } else {
+    return null;
+  }
+  if (items.length < 1 || items.length > MAX_PRICE_ITEMS) return null;
+  const seen = new Set();
+  for (const it of items) {
+    if (seen.has(it.months)) return null;
+    seen.add(it.months);
+  }
+  items.sort((a, b) => a.months - b.months);
+  return items;
+}
+
+function validPlusList(v) {
+  return pickPlusList(v) !== null;
+}
+
 // Normalisasi nomor WA admin ke format internasional tanpa '+':
 // spasi/tanda hubung dihapus, '08...' -> '62...', '812...' -> '62...'.
 // Mengembalikan string ternormalisasi, atau '' kalau tidak valid.
@@ -339,6 +398,8 @@ module.exports = {
   readJsonBody,
   validPriceMap,
   pickPrices,
+  validPlusList,
+  pickPlusList,
   normalizeWa,
   validAdminWa,
   clientIp,

@@ -151,6 +151,33 @@
                 .sort((a, b) => a[0] - b[0]);
         }
 
+        // Daftar Plus disimpan di server sebagai array [{ months, price }],
+        // sedangkan form memakai map { nominal: harga } seperti daftar
+        // lain. Dua fungsi ini mengubah bentuknya saat muat/simpan.
+        // plusListToMap juga menerima bentuk lama (map, atau array angka
+        // hasil konversi Firebase) supaya data tersimpan tetap terbaca.
+        function plusListToMap(v) {
+            if (Array.isArray(v)) {
+                const out = {};
+                for (let i = 0; i < v.length; i++) {
+                    const e = v[i];
+                    if (e === null || e === undefined) continue;
+                    if (typeof e === 'object') {
+                        if (Number.isInteger(e.months) && Number.isInteger(e.price)) out[String(e.months)] = e.price;
+                    } else if (Number.isInteger(e) && i >= 1) {
+                        out[String(i)] = e;
+                    }
+                }
+                return out;
+            }
+            if (v && typeof v === 'object') return v;
+            return {};
+        }
+
+        function plusMapToList(map) {
+            return sortedEntries(map).map((pair) => ({ months: pair[0], price: pair[1] }));
+        }
+
         // Satu baris item: input nominal + input harga + tombol hapus.
         // unitLabel: 'Robux' untuk Via Login/Via Username, 'Bulan' untuk
         // Roblox Plus (durasi).
@@ -302,7 +329,8 @@
                 const data = await res.json();
                 if (data && data.stored) {
                     if (validPriceMap(data.stored.login)) buildItemForm('priceFormLogin', data.stored.login);
-                    if (validPriceMap(data.stored.plus)) buildItemForm('priceFormPlus', data.stored.plus);
+                    const storedPlus = plusListToMap(data.stored.plus);
+                    if (validPriceMap(storedPlus)) buildItemForm('priceFormPlus', storedPlus);
                     if (validPriceMap(data.stored.username)) buildItemForm('priceFormUsername', data.stored.username);
                     badge.innerText = 'Harga tersimpan dimuat';
                 } else {
@@ -349,7 +377,7 @@
                 const res = await apiFetch('/api/admin-prices', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ login, plus, username })
+                    body: JSON.stringify({ login, plus: plusMapToList(plus), username })
                 });
                 if (res.status === 401) {
                     showLogin();
