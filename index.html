@@ -326,7 +326,10 @@
         const CLOUD_DB_URL = "https://dolphinjoki-default-rtdb.asia-southeast1.firebasedatabase.app";
         const PRICES_DB_PATH = 'seanrobux_prices';
         const CONFIG_DB_PATH = 'seanrobux_config';
-        const CLOUD_NOMINALS = [80, 100, 200, 400, 800, 1700, 2750, 5500];
+        // Batas list item dari admin (sama dengan aturan di server).
+        const MAX_CLOUD_ITEMS = 20;
+        const MAX_CLOUD_NOMINAL = 1000000;
+        const MAX_CLOUD_PRICE = 100000000;
 
         const MANUAL_PAYMENTS = [
             {
@@ -745,16 +748,25 @@
             }
         }
 
-        // Map { "80": 14000, ... } -> [{ robux, price }, ...], atau null
-        // kalau ada nominal yang hilang / bukan angka lebih dari 0.
+        // Map { "80": 14000, "500": 75000, ... } -> [{ robux, price }, ...]
+        // diurutkan dari nominal terkecil, atau null kalau list-nya tidak
+        // valid (bukan 1-20 item, nominal di luar batas, atau harga bukan
+        // angka lebih dari 0). Nominalnya bebas, mengikuti list yang
+        // dibuat admin; kalau tidak valid, harga bawaan file yang dipakai.
         function cloudPriceList(map) {
-            if (!map || typeof map !== 'object') return null;
+            if (!map || typeof map !== 'object' || Array.isArray(map)) return null;
+            const keys = Object.keys(map);
+            if (keys.length < 1 || keys.length > MAX_CLOUD_ITEMS) return null;
             const list = [];
-            for (const n of CLOUD_NOMINALS) {
-                const p = map[String(n)];
-                if (!Number.isInteger(p) || p <= 0) return null;
+            for (const k of keys) {
+                if (!/^[1-9][0-9]*$/.test(k)) return null;
+                const n = parseInt(k, 10);
+                if (n > MAX_CLOUD_NOMINAL) return null;
+                const p = map[k];
+                if (!Number.isInteger(p) || p < 1 || p > MAX_CLOUD_PRICE) return null;
                 list.push({ robux: n, price: p });
             }
+            list.sort((a, b) => a.robux - b.robux);
             return list;
         }
 
