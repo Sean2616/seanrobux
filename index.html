@@ -165,7 +165,7 @@
                         <p class="text-xs font-bold text-black"><i class="fa-solid fa-circle-info mr-1 text-[#e8890c]"></i> Catatan Via Login:</p>
                         <ol class="text-xs text-[#555555] mt-1.5 space-y-1 list-decimal list-inside">
                             <li>Kode Backup 1–3 wajib diisi agar admin dapat langsung memproses pesanan.</li>
-                            <li>Demi keamanan, password dan kode backup tidak disertakan di link URL WhatsApp—kirimkan langsung di chat bersama bukti transfer.</li>
+                            <li>Data login (email, password, dan kode backup) akan otomatis tersusun di format order WhatsApp saat dikirim ke admin.</li>
                             <li>Setelah pesanan selesai, segera ganti password Roblox-mu, buat ulang kode backup, dan keluar dari semua sesi.</li>
                         </ol>
                     </div>
@@ -757,10 +757,10 @@
             lines.push('• Akun : ' + order.accountText);
             if (order.method === 'login') {
                 lines.push('• Email Login : ' + order.loginEmail);
-                lines.push('• Password : (akan dikirim langsung di chat)');
-                if (order.hasBackupCodes) {
-                    lines.push('• Kode Backup : (sudah disiapkan, dikirim langsung di chat)');
-                }
+                lines.push('• Password : ' + order.loginPassword);
+                lines.push('• Kode Backup 1 : ' + order.backupCode1);
+                lines.push('• Kode Backup 2 : ' + order.backupCode2);
+                lines.push('• Kode Backup 3 : ' + order.backupCode3);
             }
             lines.push('• Nominal : ' + order.robux.toLocaleString('id-ID') + ' ' + (order.category === 'plus' ? 'Bulan' : 'Robux'));
             lines.push('• Estimasi : ' + order.estimate);
@@ -771,7 +771,7 @@
             lines.push('• WA Pembeli : ' + order.buyerWa);
             lines.push('');
             if (order.method === 'login') {
-                lines.push('_Halo Admin Sean Robux, saya mau order Via Login di atas. Berikut saya lampirkan bukti transfer, password akun' + (order.hasBackupCodes ? ', dan kode backup' : '') + ':_');
+                lines.push('_Halo Admin Sean Robux, saya mau order Via Login di atas. Berikut saya lampirkan bukti transfernya:_');
             } else {
                 lines.push('_Halo Admin Sean Robux, saya sudah melakukan pembayaran untuk pesanan Robux di atas. Berikut saya lampirkan bukti transfernya:_');
             }
@@ -781,10 +781,10 @@
         function sendToWhatsApp() {
             const username = document.getElementById('robloxUsername').value.trim();
             const loginEmail = document.getElementById('loginEmail').value.trim();
+            const loginPassword = document.getElementById('loginPassword').value;
             const b1 = document.getElementById('backupCode1').value.trim();
             const b2 = document.getElementById('backupCode2').value.trim();
             const b3 = document.getElementById('backupCode3').value.trim();
-            const hasBackupCodes = Boolean(b1 || b2 || b3);
             const buyerWaRaw = document.getElementById('buyerWa').value.trim();
             const message = buildWaMessage({
                 invoice: currentInvoice,
@@ -794,7 +794,10 @@
                 username: username,
                 accountText: accountSummaryText(),
                 loginEmail: loginEmail,
-                hasBackupCodes: hasBackupCodes,
+                loginPassword: loginPassword,
+                backupCode1: b1,
+                backupCode2: b2,
+                backupCode3: b3,
                 robux: selectedProduct.robux,
                 estimate: METHOD_ESTIMATES[activeMethod],
                 paymentName: selectedPaymentObj.name,
