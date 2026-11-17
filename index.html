@@ -295,9 +295,9 @@
         // ============================================================
         // KONFIGURASI — UBAH DI SINI SAJA
         // ============================================================
-        const ADMIN_WA = "6281268428112";
+        let ADMIN_WA = "6281268428112";
 
-        const PRODUCTS_USERNAME = [
+        let PRODUCTS_USERNAME = [
             { robux: 80, price: 14000 },
             { robux: 100, price: 17000 },
             { robux: 200, price: 33000 },
@@ -308,7 +308,7 @@
             { robux: 5500, price: 849000 }
         ];
 
-        const PRODUCTS_LOGIN = [
+        let PRODUCTS_LOGIN = [
             { robux: 80, price: 14000 },
             { robux: 100, price: 17000 },
             { robux: 200, price: 33000 },
@@ -318,6 +318,15 @@
             { robux: 2750, price: 429000 },
             { robux: 5500, price: 849000 }
         ];
+
+        // Harga & nomor WA yang disimpan lewat halaman admin (admin.html)
+        // dimuat dari Firebase saat halaman dibuka. Kalau gagal memuat
+        // atau datanya tidak valid, harga dan nomor di file ini yang
+        // dipakai, jadi situs tetap jalan. Jangan ubah alamat di bawah ini.
+        const CLOUD_DB_URL = "https://dolphinjoki-default-rtdb.asia-southeast1.firebasedatabase.app";
+        const PRICES_DB_PATH = 'seanrobux_prices';
+        const CONFIG_DB_PATH = 'seanrobux_config';
+        const CLOUD_NOMINALS = [80, 100, 200, 400, 800, 1700, 2750, 5500];
 
         const MANUAL_PAYMENTS = [
             {
@@ -723,6 +732,66 @@
             closeModal();
         }
 
+        // ---------- Harga & nomor WA dari Firebase (halaman admin) ----------
+        // Satu per satu, supaya kalau salah satu gagal, yang lain tetap dipakai.
+
+        async function fetchCloudJson(dbPath) {
+            try {
+                const res = await fetch(CLOUD_DB_URL.replace(/\/+$/, '') + '/' + dbPath + '.json', { cache: 'no-store' });
+                if (!res.ok) return null;
+                return await res.json().catch(() => null);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // Map { "80": 14000, ... } -> [{ robux, price }, ...], atau null
+        // kalau ada nominal yang hilang / bukan angka lebih dari 0.
+        function cloudPriceList(map) {
+            if (!map || typeof map !== 'object') return null;
+            const list = [];
+            for (const n of CLOUD_NOMINALS) {
+                const p = map[String(n)];
+                if (!Number.isInteger(p) || p <= 0) return null;
+                list.push({ robux: n, price: p });
+            }
+            return list;
+        }
+
+        function updateFloaterLink() {
+            const floater = document.getElementById('csFloater');
+            if (floater) floater.href = 'https://wa.me/' + ADMIN_WA + '?text=' + encodeURIComponent('Halo Admin Sean Robux, saya mau tanya soal top up Robux.');
+        }
+
+        async function loadCloudSettings() {
+            const pricesData = await fetchCloudJson(PRICES_DB_PATH);
+            const configData = await fetchCloudJson(CONFIG_DB_PATH);
+            let changed = false;
+            const login = pricesData ? cloudPriceList(pricesData.login) : null;
+            const username = pricesData ? cloudPriceList(pricesData.username) : null;
+            if (login && username) {
+                PRODUCTS_LOGIN = login;
+                PRODUCTS_USERNAME = username;
+                // Kalau customer sudah sempat memilih nominal sebelum harga
+                // termuat, samakan pilihannya dengan harga terbaru.
+                if (selectedProduct) {
+                    const fresh = currentProducts().find(p => p.robux === selectedProduct.robux);
+                    selectedProduct = fresh || null;
+                }
+                changed = true;
+            }
+            const wa = configData && typeof configData.adminWa === 'string' ? configData.adminWa : '';
+            if (/^62[0-9]{8,13}$/.test(wa) && wa !== ADMIN_WA) {
+                ADMIN_WA = wa;
+                changed = true;
+            }
+            if (changed) {
+                renderProducts();
+                updateSummary();
+                updateFloaterLink();
+            }
+        }
+
         window.onload = function() {
             renderPaymentCards();
             selectPayment(0);
@@ -733,6 +802,7 @@
             document.getElementById('invoiceModal').addEventListener('click', function(e) {
                 if (e.target === this) closeModal();
             });
+            loadCloudSettings();
         };
     </script>
 </body>
