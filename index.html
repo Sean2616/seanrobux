@@ -244,7 +244,7 @@
                     <h2 class="text-lg font-bold text-black mb-3">Cara Order</h2>
                     <ol class="text-xs sm:text-sm text-[#555555] space-y-2 list-decimal list-inside">
                         <li><span class="text-black font-semibold">Isi username Roblox</span> dan tekan Cek Username untuk memastikan akunnya benar. (Jika memilih Via Login, lengkapi juga Email, Password, dan Kode Backup 1–3).</li>
-                        <li><span class="text-black font-semibold">Pilih nominal Robux.</span></li>
+                        <li><span class="text-black font-semibold">Pilih nominal Robux atau durasi Roblox Plus.</span></li>
                         <li><span class="text-black font-semibold">Bayar via QRIS</span> sesuai total di invoice.</li>
                         <li><span class="text-black font-semibold">Kirim pesanan ke WhatsApp Admin</span> dari tombol di invoice, lalu lampirkan bukti transfer. Admin memproses secara manual dan menghubungimu lewat nomor WhatsApp yang kamu isi.</li>
                     </ol>
@@ -332,13 +332,15 @@
         ];
 
         // Sub-kategori Roblox Plus di tab Via Login (posisi seperti
-        // Weekly Diamond Pass di Sean Top Up). Harga contoh — ganti
+        // Weekly Diamond Pass di Sean Top Up). Isinya DURASI dalam
+        // Bulan, bukan Robux: angka nominal dibaca sebagai jumlah
+        // Bulan (1 = 1 Bulan, 3 = 3 Bulan, dst). Harga contoh — ganti
         // lewat halaman admin, seperti daftar Via Login & Via Username.
         let PRODUCTS_PLUS = [
-            { robux: 150, price: 25000 },
-            { robux: 450, price: 72000 },
-            { robux: 900, price: 142000 },
-            { robux: 2500, price: 389000 }
+            { robux: 1, price: 25000 },
+            { robux: 3, price: 70000 },
+            { robux: 6, price: 130000 },
+            { robux: 12, price: 240000 }
         ];
 
         // Harga & nomor WA yang disimpan lewat halaman admin (admin.html)
@@ -452,10 +454,10 @@
             }
         }
 
-        function productCardHtml(p, idx, category, onclickFn) {
+        function productCardHtml(p, idx, category, onclickFn, unit) {
             const active = selectedProduct && selectedProduct.category === category && selectedProduct.robux === p.robux && selectedProduct.price === p.price;
             return '<button type="button" onclick="' + onclickFn + '(' + idx + ')" class="product-card ' + (active ? 'active' : '') + ' bg-white border-2 border-black rounded-xl p-3 text-left transition hover:border-black min-w-0">'
-                + '<span class="block text-sm font-extrabold text-black whitespace-nowrap">' + p.robux.toLocaleString('id-ID') + ' Robux</span>'
+                + '<span class="block text-sm font-extrabold text-black whitespace-nowrap">' + p.robux.toLocaleString('id-ID') + ' ' + unit + '</span>'
                 + '<span class="block text-xs text-[#e8890c] font-bold whitespace-nowrap">' + formatRupiah(p.price) + '</span>'
                 + '</button>';
         }
@@ -463,13 +465,13 @@
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             const list = currentProducts();
-            grid.innerHTML = list.map((p, idx) => productCardHtml(p, idx, activeMethod, 'selectProduct')).join('');
+            grid.innerHTML = list.map((p, idx) => productCardHtml(p, idx, activeMethod, 'selectProduct', 'Robux')).join('');
             // Sub-kategori Roblox Plus: hanya di tab Via Login, di atas
             // daftar utama, seperti Weekly Diamond Pass di Sean Top Up.
             const isLogin = activeMethod === 'login';
             const plusSection = document.getElementById('plusSection');
             const plusGrid = document.getElementById('plusGrid');
-            plusGrid.innerHTML = PRODUCTS_PLUS.map((p, idx) => productCardHtml(p, idx, 'plus', 'selectPlusProduct')).join('');
+            plusGrid.innerHTML = PRODUCTS_PLUS.map((p, idx) => productCardHtml(p, idx, 'plus', 'selectPlusProduct', 'Bulan')).join('');
             plusSection.classList.toggle('hidden', !isLogin || PRODUCTS_PLUS.length < 1);
             document.getElementById('mainGridLabel').classList.toggle('hidden', !isLogin);
             updateMethodUI();
@@ -491,7 +493,8 @@
 
         function nominalDisplayText() {
             if (!selectedProduct) return '-';
-            const base = selectedProduct.robux.toLocaleString('id-ID') + ' Robux';
+            const unit = selectedProduct.category === 'plus' ? 'Bulan' : 'Robux';
+            const base = selectedProduct.robux.toLocaleString('id-ID') + ' ' + unit;
             return selectedProduct.category === 'plus' ? base + ' (Roblox Plus)' : base;
         }
 
@@ -759,7 +762,7 @@
                     lines.push('• Kode Backup : (sudah disiapkan, dikirim langsung di chat)');
                 }
             }
-            lines.push('• Nominal : ' + order.robux.toLocaleString('id-ID') + ' Robux');
+            lines.push('• Nominal : ' + order.robux.toLocaleString('id-ID') + ' ' + (order.category === 'plus' ? 'Bulan' : 'Robux'));
             lines.push('• Estimasi : ' + order.estimate);
             lines.push('----------------------------------------');
             lines.push('*PEMBAYARAN MANUAL:*');

@@ -4,8 +4,10 @@
 // PUT  -> body { login, username, plus? } (masing-masing map nominal -> harga
 //         rupiah; tiap daftar 1-20 item, nominal 1-1.000.000, harga
 //         1-100.000.000). Daftar "plus" (Roblox Plus, sub-kategori di tab
-//         Via Login) boleh tidak ada, untuk data lama yang hanya berisi
-//         login + username; kalau ada, harus valid seperti daftar lain.
+//         Via Login) berisi DURASI dalam Bulan, bukan Robux, tapi
+//         aturannya sama. Daftar "plus" boleh tidak ada, untuk data
+//         lama yang hanya berisi login + username; kalau ada, harus
+//         valid seperti daftar lain.
 // Browser tidak lagi membaca/menulis Firebase langsung untuk admin;
 // halaman utama situs tetap memuat harga publik langsung dari Firebase.
 
@@ -39,7 +41,7 @@ module.exports = async (req, res) => {
     const username = body ? auth.pickPrices(body.username) : null;
     const plus = body && body.plus !== undefined ? auth.pickPrices(body.plus) : undefined;
     if (!login || !username || plus === null) {
-      return auth.sendJson(res, 400, { success: false, message: 'Daftar harga tidak valid: tiap daftar 1-20 item, nominal 1-1.000.000 Robux, harga angka lebih dari 0.' });
+      return auth.sendJson(res, 400, { success: false, message: 'Daftar harga tidak valid: tiap daftar 1-20 item, nominal 1-1.000.000, harga angka lebih dari 0.' });
     }
     try {
       const toStore = { login, username, updatedAt: Date.now() };
