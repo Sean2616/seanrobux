@@ -120,7 +120,7 @@
                         <span class="w-8 h-8 rounded-lg bg-[#ffa500] text-black font-bold flex items-center justify-center shrink-0"><i class="fa-solid fa-right-to-bracket text-sm"></i></span>
                         <div class="min-w-0">
                             <h2 class="text-lg font-bold text-black">Data Login Akun Roblox</h2>
-                            <p class="text-xs text-[#555555]">Isi Email, Password, dan Kode Backup (jika 2FA aktif).</p>
+                            <p class="text-xs text-[#555555]">Isi Email, Password, dan Kode Backup 1–3.</p>
                         </div>
                     </div>
 
@@ -147,16 +147,16 @@
                         <!-- 3 FORM KODE BACKUP -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
-                                <label class="text-xs text-black font-medium" for="backupCode1">Kode Backup 1</label>
-                                <input type="text" id="backupCode1" placeholder="Opsional (2FA)" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                                <label class="text-xs text-black font-medium" for="backupCode1">Kode Backup 1 <span class="text-red-600">*</span></label>
+                                <input type="text" id="backupCode1" required placeholder="Wajib diisi" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
                             </div>
                             <div>
-                                <label class="text-xs text-black font-medium" for="backupCode2">Kode Backup 2</label>
-                                <input type="text" id="backupCode2" placeholder="Opsional (2FA)" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                                <label class="text-xs text-black font-medium" for="backupCode2">Kode Backup 2 <span class="text-red-600">*</span></label>
+                                <input type="text" id="backupCode2" required placeholder="Wajib diisi" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
                             </div>
                             <div>
-                                <label class="text-xs text-black font-medium" for="backupCode3">Kode Backup 3</label>
-                                <input type="text" id="backupCode3" placeholder="Opsional (2FA)" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
+                                <label class="text-xs text-black font-medium" for="backupCode3">Kode Backup 3 <span class="text-red-600">*</span></label>
+                                <input type="text" id="backupCode3" required placeholder="Wajib diisi" autocomplete="off" autocapitalize="off" spellcheck="false" class="w-full mt-1 bg-white border-2 border-black rounded-lg px-3 py-2.5 text-sm text-black focus:outline-none focus:border-black">
                             </div>
                         </div>
                     </div>
@@ -164,7 +164,7 @@
                     <div class="mt-4 bg-[#FFF8E1] border-2 border-black rounded-xl p-3">
                         <p class="text-xs font-bold text-black"><i class="fa-solid fa-circle-info mr-1 text-[#e8890c]"></i> Catatan Via Login:</p>
                         <ol class="text-xs text-[#555555] mt-1.5 space-y-1 list-decimal list-inside">
-                            <li>Jika akun mengaktifkan 2-Step Verification (2FA), isi Kode Backup 1–3 agar admin dapat langsung memproses pesanan.</li>
+                            <li>Kode Backup 1–3 wajib diisi agar admin dapat langsung memproses pesanan.</li>
                             <li>Demi keamanan, password dan kode backup tidak disertakan di link URL WhatsApp—kirimkan langsung di chat bersama bukti transfer.</li>
                             <li>Setelah pesanan selesai, segera ganti password Roblox-mu, buat ulang kode backup, dan keluar dari semua sesi.</li>
                         </ol>
@@ -231,7 +231,7 @@
                 <div class="glass-card rounded-2xl p-5">
                     <h2 class="text-lg font-bold text-black mb-3">Cara Order</h2>
                     <ol class="text-xs sm:text-sm text-[#555555] space-y-2 list-decimal list-inside">
-                        <li><span class="text-black font-semibold">Isi username Roblox</span> dan tekan Cek Username untuk memastikan akunnya benar. (Jika memilih Via Login, lengkapi juga Email, Password, dan Kode Backup jika 2FA aktif).</li>
+                        <li><span class="text-black font-semibold">Isi username Roblox</span> dan tekan Cek Username untuk memastikan akunnya benar. (Jika memilih Via Login, lengkapi juga Email, Password, dan Kode Backup 1–3).</li>
                         <li><span class="text-black font-semibold">Pilih nominal Robux.</span></li>
                         <li><span class="text-black font-semibold">Bayar via QRIS</span> sesuai total di invoice.</li>
                         <li><span class="text-black font-semibold">Kirim pesanan ke WhatsApp Admin</span> dari tombol di invoice, lalu lampirkan bukti transfer. Admin memproses secara manual dan menghubungimu lewat nomor WhatsApp yang kamu isi.</li>
@@ -606,6 +606,9 @@
             const username = document.getElementById('robloxUsername').value.trim();
             const loginEmail = document.getElementById('loginEmail').value.trim();
             const loginPassword = document.getElementById('loginPassword').value;
+            const backupCode1 = document.getElementById('backupCode1').value.trim();
+            const backupCode2 = document.getElementById('backupCode2').value.trim();
+            const backupCode3 = document.getElementById('backupCode3').value.trim();
             const buyerWaRaw = document.getElementById('buyerWa').value.trim();
 
             if (!validRobloxUsername(username)) {
@@ -626,6 +629,21 @@
                 if (!loginPassword || loginPassword.length < 4) {
                     alert('Isi Password Akun Roblox terlebih dahulu.');
                     document.getElementById('loginPassword').focus();
+                    return;
+                }
+                if (!backupCode1) {
+                    alert('Isi Kode Backup 1 terlebih dahulu.');
+                    document.getElementById('backupCode1').focus();
+                    return;
+                }
+                if (!backupCode2) {
+                    alert('Isi Kode Backup 2 terlebih dahulu.');
+                    document.getElementById('backupCode2').focus();
+                    return;
+                }
+                if (!backupCode3) {
+                    alert('Isi Kode Backup 3 terlebih dahulu.');
+                    document.getElementById('backupCode3').focus();
                     return;
                 }
             }
