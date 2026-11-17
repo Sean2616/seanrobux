@@ -1,8 +1,11 @@
 'use strict';
 // /api/admin-prices — baca/tulis daftar harga Robux lewat SERVER (butuh sesi admin).
-// GET  -> { success, stored: { login, username } | null }
-// PUT  -> body { login, username } (masing-masing map nominal -> harga rupiah;
-//         tiap metode 1-20 item, nominal 1-1.000.000, harga 1-100.000.000)
+// GET  -> { success, stored: { login, username, plus? } | null }
+// PUT  -> body { login, username, plus? } (masing-masing map nominal -> harga
+//         rupiah; tiap daftar 1-20 item, nominal 1-1.000.000, harga
+//         1-100.000.000). Daftar "plus" (Roblox Plus, sub-kategori di tab
+//         Via Login) boleh tidak ada, untuk data lama yang hanya berisi
+//         login + username; kalau ada, harus valid seperti daftar lain.
 // Browser tidak lagi membaca/menulis Firebase langsung untuk admin;
 // halaman utama situs tetap memuat harga publik langsung dari Firebase.
 
@@ -17,7 +20,9 @@ module.exports = async (req, res) => {
       const data = await auth.fbGet(auth.PRICES_DB_PATH);
       const login = data ? auth.pickPrices(data.login) : null;
       const username = data ? auth.pickPrices(data.username) : null;
+      const plus = data ? auth.pickPrices(data.plus) : null;
       const stored = (login && username) ? { login, username } : null;
+      if (stored && plus) stored.plus = plus;
       return auth.sendJson(res, 200, { success: true, stored });
     } catch (e) {
       return auth.sendJson(res, 500, { success: false, message: 'Gagal memuat harga tersimpan.' });
@@ -32,15 +37,14 @@ module.exports = async (req, res) => {
     }
     const login = body ? auth.pickPrices(body.login) : null;
     const username = body ? auth.pickPrices(body.username) : null;
-    if (!login || !username) {
-      return auth.sendJson(res, 400, { success: false, message: 'Daftar harga tidak valid: tiap metode 1-20 item, nominal 1-1.000.000 Robux, harga angka lebih dari 0.' });
+    const plus = body && body.plus !== undefined ? auth.pickPrices(body.plus) : undefined;
+    if (!login || !username || plus === null) {
+      return auth.sendJson(res, 400, { success: false, message: 'Daftar harga tidak valid: tiap daftar 1-20 item, nominal 1-1.000.000 Robux, harga angka lebih dari 0.' });
     }
     try {
-      await auth.fbPut(auth.PRICES_DB_PATH, {
-        login,
-        username,
-        updatedAt: Date.now(),
-      });
+      const toStore = { login, username, updatedAt: Date.now() };
+      if (plus) toStore.plus = plus;
+      await auth.fbPut(auth.PRICES_DB_PATH, toStore);
       return auth.sendJson(res, 200, { success: true });
     } catch (e) {
       return auth.sendJson(res, 500, { success: false, message: 'Gagal menyimpan harga.' });

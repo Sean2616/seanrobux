@@ -180,8 +180,20 @@
                             <p class="text-xs text-[#555555]" id="nominalSubtitle">Via Login: ditangani admin lewat chat WhatsApp.</p>
                         </div>
                     </div>
+                    <!-- Sub-kategori: Roblox Plus (khusus Via Login, posisi seperti Weekly Diamond Pass di Sean Top Up) -->
+                    <div id="plusSection" class="mb-6 hidden">
+                        <div class="inline-block bg-[#f582ae] border-2 border-black px-2.5 py-0.5 rounded-md text-xs font-extrabold mb-3 shadow-[2px_2px_0_#000]">
+                            ⭐ ROBLOX PLUS
+                        </div>
+                        <div id="plusGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+                    </div>
+                    <div id="mainGridLabel" class="hidden mb-3">
+                        <span class="inline-block bg-[#faae2b] border-2 border-black px-2.5 py-0.5 rounded-md text-xs font-extrabold shadow-[2px_2px_0_#000]">
+                            💎 ROBUX VIA LOGIN
+                        </span>
+                    </div>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3" id="productGrid"></div>
-                    <p class="text-[11px] text-[#555555] mt-3">Harga di atas masih harga contoh. Harga final mengikuti konfirmasi admin di WhatsApp.</p>
+                    <p class="text-[11px] text-[#555555] mt-3">Harga final mengikuti konfirmasi admin di WhatsApp.</p>
                 </div>
 
                 <!-- LANGKAH 3: PEMBAYARAN MANUAL -->
@@ -319,6 +331,16 @@
             { robux: 5500, price: 849000 }
         ];
 
+        // Sub-kategori Roblox Plus di tab Via Login (posisi seperti
+        // Weekly Diamond Pass di Sean Top Up). Harga contoh — ganti
+        // lewat halaman admin, seperti daftar Via Login & Via Username.
+        let PRODUCTS_PLUS = [
+            { robux: 150, price: 25000 },
+            { robux: 450, price: 72000 },
+            { robux: 900, price: 142000 },
+            { robux: 2500, price: 389000 }
+        ];
+
         // Harga & nomor WA yang disimpan lewat halaman admin (admin.html)
         // dimuat dari Firebase saat halaman dibuka. Kalau gagal memuat
         // atau datanya tidak valid, harga dan nomor di file ini yang
@@ -430,23 +452,47 @@
             }
         }
 
+        function productCardHtml(p, idx, category, onclickFn) {
+            const active = selectedProduct && selectedProduct.category === category && selectedProduct.robux === p.robux && selectedProduct.price === p.price;
+            return '<button type="button" onclick="' + onclickFn + '(' + idx + ')" class="product-card ' + (active ? 'active' : '') + ' bg-white border-2 border-black rounded-xl p-3 text-left transition hover:border-black min-w-0">'
+                + '<span class="block text-sm font-extrabold text-black whitespace-nowrap">' + p.robux.toLocaleString('id-ID') + ' Robux</span>'
+                + '<span class="block text-xs text-[#e8890c] font-bold whitespace-nowrap">' + formatRupiah(p.price) + '</span>'
+                + '</button>';
+        }
+
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             const list = currentProducts();
-            grid.innerHTML = list.map((p, idx) => {
-                const active = selectedProduct && selectedProduct.robux === p.robux && selectedProduct.price === p.price;
-                return '<button type="button" onclick="selectProduct(' + idx + ')" class="product-card ' + (active ? 'active' : '') + ' bg-white border-2 border-black rounded-xl p-3 text-left transition hover:border-black min-w-0">'
-                    + '<span class="block text-sm font-extrabold text-black whitespace-nowrap">' + p.robux.toLocaleString('id-ID') + ' Robux</span>'
-                    + '<span class="block text-xs text-[#e8890c] font-bold whitespace-nowrap">' + formatRupiah(p.price) + '</span>'
-                    + '</button>';
-            }).join('');
+            grid.innerHTML = list.map((p, idx) => productCardHtml(p, idx, activeMethod, 'selectProduct')).join('');
+            // Sub-kategori Roblox Plus: hanya di tab Via Login, di atas
+            // daftar utama, seperti Weekly Diamond Pass di Sean Top Up.
+            const isLogin = activeMethod === 'login';
+            const plusSection = document.getElementById('plusSection');
+            const plusGrid = document.getElementById('plusGrid');
+            plusGrid.innerHTML = PRODUCTS_PLUS.map((p, idx) => productCardHtml(p, idx, 'plus', 'selectPlusProduct')).join('');
+            plusSection.classList.toggle('hidden', !isLogin || PRODUCTS_PLUS.length < 1);
+            document.getElementById('mainGridLabel').classList.toggle('hidden', !isLogin);
             updateMethodUI();
         }
 
         function selectProduct(idx) {
-            selectedProduct = currentProducts()[idx];
+            const p = currentProducts()[idx];
+            selectedProduct = { robux: p.robux, price: p.price, category: activeMethod };
             renderProducts();
             updateSummary();
+        }
+
+        function selectPlusProduct(idx) {
+            const p = PRODUCTS_PLUS[idx];
+            selectedProduct = { robux: p.robux, price: p.price, category: 'plus' };
+            renderProducts();
+            updateSummary();
+        }
+
+        function nominalDisplayText() {
+            if (!selectedProduct) return '-';
+            const base = selectedProduct.robux.toLocaleString('id-ID') + ' Robux';
+            return selectedProduct.category === 'plus' ? base + ' (Roblox Plus)' : base;
         }
 
         function switchMethod(method) {
@@ -590,7 +636,7 @@
             document.getElementById('summaryUsername').innerText = username || '-';
             document.getElementById('summaryAccount').innerText = username ? accountSummaryText() : '-';
             document.getElementById('summaryLoginEmail').innerText = loginEmail || '-';
-            document.getElementById('summaryNominal').innerText = selectedProduct ? selectedProduct.robux.toLocaleString('id-ID') + ' Robux' : '-';
+            document.getElementById('summaryNominal').innerText = nominalDisplayText();
             document.getElementById('summaryPayment').innerText = selectedPaymentObj ? selectedPaymentObj.name : '-';
             document.getElementById('summaryTotal').innerText = selectedProduct ? formatRupiah(selectedProduct.price) : '-';
         }
@@ -671,7 +717,7 @@
             modalLoginRow.classList.toggle('hidden', activeMethod !== 'login');
             document.getElementById('modalLoginEmail').innerText = loginEmail || '-';
 
-            document.getElementById('modalNominal').innerText = selectedProduct.robux.toLocaleString('id-ID') + ' Robux';
+            document.getElementById('modalNominal').innerText = nominalDisplayText();
             document.getElementById('modalBuyerWa').innerText = buyerWaRaw;
             document.getElementById('modalTotal').innerText = formatRupiah(selectedProduct.price);
 
@@ -701,6 +747,9 @@
             lines.push('----------------------------------------');
             lines.push('*DETAIL ORDERAN:*');
             lines.push('• Metode : ' + order.methodLabel);
+            if (order.category === 'plus') {
+                lines.push('• Kategori : Roblox Plus');
+            }
             lines.push('• Username Roblox : ' + order.username);
             lines.push('• Akun : ' + order.accountText);
             if (order.method === 'login') {
@@ -737,6 +786,7 @@
             const message = buildWaMessage({
                 invoice: currentInvoice,
                 method: activeMethod,
+                category: selectedProduct ? selectedProduct.category : activeMethod,
                 methodLabel: METHOD_LABELS[activeMethod],
                 username: username,
                 accountText: accountSummaryText(),
@@ -799,16 +849,25 @@
             let changed = false;
             const login = pricesData ? cloudPriceList(pricesData.login) : null;
             const username = pricesData ? cloudPriceList(pricesData.username) : null;
+            const plus = pricesData ? cloudPriceList(pricesData.plus) : null;
             if (login && username) {
                 PRODUCTS_LOGIN = login;
                 PRODUCTS_USERNAME = username;
-                // Kalau customer sudah sempat memilih nominal sebelum harga
-                // termuat, samakan pilihannya dengan harga terbaru.
-                if (selectedProduct) {
-                    const fresh = currentProducts().find(p => p.robux === selectedProduct.robux);
-                    selectedProduct = fresh || null;
-                }
                 changed = true;
+            }
+            // Daftar Roblox Plus dimuat terpisah: kalau tidak ada atau
+            // tidak valid, daftar bawaan file yang dipakai, tanpa
+            // mengganggu daftar Via Login & Via Username.
+            if (plus) {
+                PRODUCTS_PLUS = plus;
+                changed = true;
+            }
+            // Kalau customer sudah sempat memilih nominal sebelum harga
+            // termuat, samakan pilihannya dengan harga terbaru.
+            if (selectedProduct) {
+                const list = selectedProduct.category === 'plus' ? PRODUCTS_PLUS : currentProducts();
+                const fresh = list.find(p => p.robux === selectedProduct.robux);
+                selectedProduct = fresh ? { robux: fresh.robux, price: fresh.price, category: selectedProduct.category } : null;
             }
             const wa = configData && typeof configData.adminWa === 'string' ? configData.adminWa : '';
             if (/^62[0-9]{8,13}$/.test(wa) && wa !== ADMIN_WA) {
