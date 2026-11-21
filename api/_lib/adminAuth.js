@@ -24,6 +24,10 @@ if (FIREBASE_DB_URL.indexOf('__FIREBASE') !== -1) {
 }
 const PRICES_DB_PATH = 'seanrobux_prices';
 const CONFIG_DB_PATH = 'seanrobux_config';
+// Hash password admin disimpan di jalur TERPISAH dari seanrobux_config,
+// karena seanrobux_config (nomor WA) dibaca langsung oleh browser
+// pengunjung. Kunci rules Firebase agar seanrobux_auth tidak bisa dibaca publik.
+const AUTH_DB_PATH = 'seanrobux_auth';
 const SESSION_COOKIE = 'sr_admin';
 const SESSION_MAX_AGE = 12 * 60 * 60; // 12 jam, dalam detik
 const NOMINALS = [80, 100, 200, 400, 800, 1700, 2750, 5500];
@@ -77,7 +81,11 @@ function verifyHash(password, stored) {
 // ---------- Firebase REST (dari server) ----------
 
 async function fbRequest(path, method, body) {
-  const res = await fetch(FIREBASE_DB_URL + '/' + path + '.json', {
+  // Jika FIREBASE_DB_SECRET dipasang di Vercel, dipakai untuk autentikasi
+  // server-ke-Firebase (wajib setelah rules Firebase dikunci).
+  const dbSecret = process.env.FIREBASE_DB_SECRET;
+  const authQuery = dbSecret ? '?auth=' + encodeURIComponent(dbSecret) : '';
+  const res = await fetch(FIREBASE_DB_URL + '/' + path + '.json' + authQuery, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined,
@@ -102,13 +110,20 @@ function fbPatch(path, obj) {
 // ---------- Password admin ----------
 
 async function getStoredPassword() {
+  // 1) Jalur baru yang terpisah (seanrobux_auth)
+  const authData = await fbGet(AUTH_DB_PATH).catch(() => null);
+  if (authData && typeof authData === 'object' && typeof authData.adminPasswordHash === 'string' && authData.adminPasswordHash) {
+    return { hash: authData.adminPasswordHash, legacy: null, fromOldPath: false };
+  }
+  // 2) Jalur lama (seanrobux_config) — dimigrasikan saat login berhasil
   const data = await fbGet(CONFIG_DB_PATH);
-  if (!data || typeof data !== 'object') return { hash: null, legacy: null };
+  if (!data || typeof data !== 'object') return { hash: null, legacy: null, fromOldPath: false };
   return {
     hash: typeof data.adminPasswordHash === 'string' && data.adminPasswordHash ? data.adminPasswordHash : null,
     // Format lama: plaintext di field adminPassword. Dimigrasikan
     // otomatis menjadi hash saat login pertama yang berhasil.
     legacy: typeof data.adminPassword === 'string' && data.adminPassword ? data.adminPassword : null,
+    fromOldPath: true,
   };
 }
 
@@ -117,19 +132,27 @@ async function getStoredPassword() {
 async function verifyPassword(input) {
   const stored = await getStoredPassword();
   if (stored.hash) {
-    return verifyHash(input, stored.hash);
+    const okHash = verifyHash(input, stored.hash);
+    if (okHash && stored.fromOldPath) {
+      // Pindahkan hash dari seanrobux_config (publik) ke seanrobux_auth.
+      try {
+        await fbPatch(AUTH_DB_PATH, { adminPasswordHash: stored.hash, updatedAt: Date.now() });
+        await fbPatch(CONFIG_DB_PATH, { adminPasswordHash: null, adminPassword: null });
+      } catch (e) { /* abaikan */ }
+    }
+    return okHash;
   }
   if (stored.legacy) {
     const ok = safeEqual(input, stored.legacy);
     if (ok) {
-      // Migrasikan simpanan lama (plaintext) menjadi hash. Kegagalan
-      // migrasi tidak menggagalkan login yang sudah benar.
+      // Migrasikan simpanan lama (plaintext) menjadi hash di jalur baru.
+      // Kegagalan migrasi tidak menggagalkan login yang sudah benar.
       try {
-        await fbPatch(CONFIG_DB_PATH, {
+        await fbPatch(AUTH_DB_PATH, {
           adminPasswordHash: hashPassword(input),
-          adminPassword: null,
           updatedAt: Date.now(),
         });
+        await fbPatch(CONFIG_DB_PATH, { adminPasswordHash: null, adminPassword: null });
       } catch (e) { /* abaikan */ }
     }
     return ok;
@@ -142,11 +165,14 @@ async function verifyPassword(input) {
 }
 
 async function setPassword(newPassword) {
-  await fbPatch(CONFIG_DB_PATH, {
+  await fbPatch(AUTH_DB_PATH, {
     adminPasswordHash: hashPassword(newPassword),
-    adminPassword: null,
     updatedAt: Date.now(),
   });
+  // Bersihkan sisa hash/plaintext di jalur lama yang bisa dibaca publik.
+  try {
+    await fbPatch(CONFIG_DB_PATH, { adminPasswordHash: null, adminPassword: null });
+  } catch (e) { /* abaikan */ }
 }
 
 // ---------- Sesi (token HMAC di cookie httpOnly) ----------
@@ -372,6 +398,7 @@ function clearLoginAttempts(ip) {
 module.exports = {
   PRICES_DB_PATH,
   CONFIG_DB_PATH,
+  AUTH_DB_PATH,
   SESSION_COOKIE,
   SESSION_MAX_AGE,
   NOMINALS,
